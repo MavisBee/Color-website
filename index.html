@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChromaFlow - Professional Color Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="theme-dark"> <!-- Defaulting to dark -->
+
+    <main class="app-wrapper">
+
+        <!-- 1. Header: Logo & Theme Toggle Only -->
+        <header class="top-header">
+            <div class="brand">
+                <span class="material-icons-round logo-icon">style</span>
+                <div class="brand-text">
+                    <h1>ChromaFlow</h1>
+                </div>
+            </div>
+            <button id="theme-toggle" class="icon-btn-large" title="Toggle Light/Dark Mode" aria-label="Toggle Theme">
+                <span class="material-icons-round">light_mode</span>
+            </button>
+        </header>
+
+        <!-- 2. Palette Section -->
+        <section class="palette-container" id="palette-container" aria-label="Color Palette">
+            <!-- 5 Colors rendered here -->
+            <div class="color-card" data-index="0">
+                <div class="color-swatch-area">
+                    <div class="color-overlay"><button class="action-btn" title="Lock Color"><span
+                                class="material-icons-round">lock_open</span></button><button class="action-btn"
+                            title="Refresh This Color"><span class="material-icons-round">refresh</span></button></div>
+                </div>
+                <div class="color-details"><span class="hex-text">#------</span><button class="copy-btn"
+                        title="Copy HEX"><span class="material-icons-round">content_copy</span></button></div>
+            </div>
+            <div class="color-card" data-index="1">
+                <div class="color-swatch-area">
+                    <div class="color-overlay"><button class="action-btn" title="Lock Color"><span
+                                class="material-icons-round">lock_open</span></button><button class="action-btn"
+                            title="Refresh This Color"><span class="material-icons-round">refresh</span></button></div>
+                </div>
+                <div class="color-details"><span class="hex-text">#------</span><button class="copy-btn"
+                        title="Copy HEX"><span class="material-icons-round">content_copy</span></button></div>
+            </div>
+            <div class="color-card" data-index="2">
+                <div class="color-swatch-area">
+                    <div class="color-overlay"><button class="action-btn" title="Lock Color"><span
+                                class="material-icons-round">lock_open</span></button><button class="action-btn"
+                            title="Refresh This Color"><span class="material-icons-round">refresh</span></button></div>
+                </div>
+                <div class="color-details"><span class="hex-text">#------</span><button class="copy-btn"
+                        title="Copy HEX"><span class="material-icons-round">content_copy</span></button></div>
+            </div>
+            <div class="color-card" data-index="3">
+                <div class="color-swatch-area">
+                    <div class="color-overlay"><button class="action-btn" title="Lock Color"><span
+                                class="material-icons-round">lock_open</span></button><button class="action-btn"
+                            title="Refresh This Color"><span class="material-icons-round">refresh</span></button></div>
+                </div>
+                <div class="color-details"><span class="hex-text">#------</span><button class="copy-btn"
+                        title="Copy HEX"><span class="material-icons-round">content_copy</span></button></div>
+            </div>
+            <div class="color-card" data-index="4">
+                <div class="color-swatch-area">
+                    <div class="color-overlay"><button class="action-btn" title="Lock Color"><span
+                                class="material-icons-round">lock_open</span></button><button class="action-btn"
+                            title="Refresh This Color"><span class="material-icons-round">refresh</span></button></div>
+                </div>
+                <div class="color-details"><span class="hex-text">#------</span><button class="copy-btn"
+                        title="Copy HEX"><span class="material-icons-round">content_copy</span></button></div>
+            </div>
+        </section>
+
+        <!-- 3. Sticky Controls Bar -->
+        <div class="sticky-controls">
+            <div class="controls-inner">
+                <div class="input-group">
+                    <span class="material-icons-round select-icon">tune</span>
+                    <select id="harmony-select">
+                        <option value="analogous" selected>Analogous</option>
+                        <option value="monochromatic">Monochromatic</option>
+                        <option value="complementary">Complementary</option>
+                        <option value="triadic">Triadic</option>
+                        <option value="split-complementary">Split Comp.</option>
+                        <option value="square">Square</option>
+                    </select>
+                </div>
+
+                <button id="generate-btn" class="btn-primary">
+                    <span class="material-icons-round">autorenew</span>
+                    <span>Generate Palette</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. UI Preview Section -->
+        <section class="ui-preview-section">
+            <div class="section-header">
+                <h2>Interface Preview</h2>
+                <p> visualize your palette in a modern interface</p>
+            </div>
+
+            <!-- Hero Preview -->
+            <div class="preview-hero glass-panel">
+                <div class="hero-content">
+                    <h1 class="hero-title">Design with <span style="color: var(--c-3)">Impact</span></h1>
+                    <p class="hero-text">Your selected colors bring this interface to life. This hero section changes
+                        dynamically.</p>
+                    <div class="hero-actions">
+                        <button class="hero-btn primary">Get Started</button>
+                        <button class="hero-btn secondary">Learn More</button>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="visual-circle c1"></div>
+                    <div class="visual-circle c2"></div>
+                </div>
+            </div>
+
+            <div class="preview-grid">
+                <!-- Card Component Preview -->
+                <div class="preview-card glass-panel">
+                    <div class="preview-card-header">
+                        <div class="avatar-circle"></div>
+                        <div class="lines">
+                            <div class="line short"></div>
+                            <div class="line long"></div>
+                        </div>
+                    </div>
+                    <div class="preview-card-body">
+                        <p>This component demonstrates surface colors and text contrast generated from your palette.</p>
+                    </div>
+                    <div class="preview-card-actions">
+                        <button class="demo-btn primary">Follow</button>
+                        <button class="demo-btn ghost">Message</button>
+                    </div>
+                </div>
+
+                <!-- Dashboard Widget Preview -->
+                <div class="preview-widget glass-panel">
+                    <div class="chart-area">
+                        <div class="bar bar-1"></div>
+                        <div class="bar bar-2"></div>
+                        <div class="bar bar-3"></div>
+                        <div class="bar bar-4"></div>
+                        <div class="bar bar-5"></div>
+                    </div>
+                    <div class="widget-info">
+                        <h4>Monthly Growth</h4>
+                        <div class="stat-badge">+12.5%</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
