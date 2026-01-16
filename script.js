@@ -45,11 +45,17 @@ class ColorApp {
         try {
             const response = await fetch('Illustration.svg');
             if (response.ok) {
-                let text = await response.text();
-                text = this.processSVG(text);
+                const text = await response.text();
+                // Parse TEXT to DOM
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'image/svg+xml');
+
+                this.processSVGDOM(doc);
+
                 const container = document.getElementById('svg-container');
                 if (container) {
-                    container.innerHTML = text;
+                    // Re-serialize
+                    container.innerHTML = doc.documentElement.outerHTML;
                 }
             }
         } catch (e) {
@@ -57,9 +63,7 @@ class ColorApp {
         }
     }
 
-    processSVG(text) {
-        // Map specific illustration hex colors to our dynamic variables
-        // This makes the static SVG dynamic without manually editing 800 lines of paths
+    processSVGDOM(doc) {
         const replacements = {
             // --- Dark / Outlines / Shadows (text-primary) ---
             '#5B4B55': 'var(--text-primary)',
@@ -75,16 +79,14 @@ class ColorApp {
 
 
             // --- CAR & Strong Accents (Color 1 - Primary) ---
-            // Assuming #F7B853 / #F9C266 groups are the car/yellow obj based on visual probability in illustrations or specific unique hexes not skin.
-            // Adjusting based on user request to make car distinct.
             '#F7B853': 'var(--c-1)',
             '#F9C266': 'var(--c-1)',
             '#D98A3D': 'var(--c-1)',
             '#F7BF60': 'var(--c-1)',
             '#F8BE5C': 'var(--c-1)',
             '#F8BD61': 'var(--c-1)',
-            '#F7B853': 'var(--c-1)',
-            '#F9C266': 'var(--c-1)',
+            // '#F7B853': 'var(--c-1)', // Duplicate
+            // '#F9C266': 'var(--c-1)', // Duplicate
             '#F9BA56': 'var(--c-1)',
             '#F9C97F': 'var(--c-1)',
             '#F8C87A': 'var(--c-1)',
@@ -119,7 +121,7 @@ class ColorApp {
             '#9D6C4B': 'var(--c-3)',
             '#EDCA8B': 'var(--c-3)',
             '#EFC887': 'var(--c-3)',
-            '#EFBA6C': 'var(--c-3)',
+            // '#EFBA6C': 'var(--c-3)', // Duplicate
             '#726670': 'var(--c-3)',
             '#887E72': 'var(--c-3)',
             '#DB8C3D': 'var(--c-3)',
@@ -127,7 +129,6 @@ class ColorApp {
 
 
             // --- SHIRTS / People Accents (Color 4) ---
-            // Distinct from skin/car.
             '#D74D42': 'var(--c-4)',
             '#9A3B39': 'var(--c-4)',
             '#DC9F60': 'var(--c-4)',
@@ -145,24 +146,57 @@ class ColorApp {
             '#6EB0C6': 'var(--c-5)',
             '#457684': 'var(--c-5)',
             '#4A7480': 'var(--c-5)',
-            '#6EB0C6': 'var(--c-5)',
+            // '#6EB0C6': 'var(--c-5)', // Duplicate
 
             // Misc
             'white': 'transparent'
         };
 
-        let newText = text;
-        for (const [hex, variable] of Object.entries(replacements)) {
-            // Global replace ensuring case insensitivity if needed (though hex usually upper)
-            const regex = new RegExp(hex, 'gi');
-            newText = newText.replace(regex, variable);
-        }
+        // Normalize Hex for matching (helper)
+        const normalize = (c) => c ? c.toUpperCase() : '';
 
-        // Ensure SVG scales
-        newText = newText.replace('width="1408"', 'width="100%"');
-        newText = newText.replace('height="785"', 'height="100%"');
+        // Walk all elements
+        const allElements = doc.querySelectorAll('*');
+        allElements.forEach(el => {
+            // Check fill
+            const fill = normalize(el.getAttribute('fill'));
+            if (replacements[fill]) {
+                const variable = replacements[fill];
+                el.style.fill = variable; // Use style for precedence
+                el.setAttribute('fill', variable);
 
-        return newText;
+                // Add interaction if it's a palette color
+                if (variable.includes('var(--c-')) {
+                    const indexVal = variable.replace('var(--c-', '').replace(')', '');
+                    const index = parseInt(indexVal, 10) - 1; // 1-based var to 0-based index
+
+                    el.classList.add('color-interactive');
+                    el.setAttribute('data-color-index', index);
+                }
+            }
+
+            // Check stroke
+            const stroke = normalize(el.getAttribute('stroke'));
+            if (replacements[stroke]) {
+                const variable = replacements[stroke];
+                el.style.stroke = variable;
+                el.setAttribute('stroke', variable);
+
+                // Add interaction
+                if (variable.includes('var(--c-')) {
+                    const indexVal = variable.replace('var(--c-', '').replace(')', '');
+                    const index = parseInt(indexVal, 10) - 1;
+
+                    el.classList.add('color-interactive');
+                    el.setAttribute('data-color-index', index);
+                }
+            }
+        });
+
+        // Ensure Width/Height scaling
+        const svg = doc.documentElement;
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
     }
 
     bindEvents() {
@@ -189,6 +223,72 @@ class ColorApp {
 
         // Delegate Palette Interactions
         this.dom.paletteContainer.addEventListener('click', (e) => this.handlePaletteClick(e));
+
+        // Interactive Preview Elements
+        this.bindInteractivePreview();
+    }
+
+    bindInteractivePreview() {
+        // Create Tooltip if not exists
+        if (!this.dom.tooltip) {
+            this.dom.tooltip = document.createElement('div');
+            this.dom.tooltip.className = 'preview-tooltip';
+            document.body.appendChild(this.dom.tooltip);
+        }
+
+        // Helper to get color info
+        const getColorInfo = (target) => {
+            const el = target.closest('.color-interactive');
+            if (!el) return null;
+            const index = parseInt(el.dataset.colorIndex, 10);
+            return isNaN(index) ? null : { el, index };
+        };
+
+        // Delegate MouseOver (for tooltip show)
+        document.addEventListener('mouseover', (e) => {
+            const info = getColorInfo(e.target);
+            if (info) {
+                const color = this.state.colors[info.index];
+                this.dom.tooltip.textContent = color;
+                this.dom.tooltip.style.opacity = '1';
+                // Ensure tooltip is positioned immediately
+                this.dom.tooltip.style.left = `${e.clientX}px`;
+                this.dom.tooltip.style.top = `${e.clientY}px`;
+            }
+        });
+
+        // Delegate MouseMove (for tooltip follow)
+        document.addEventListener('mousemove', (e) => {
+            if (this.dom.tooltip.style.opacity === '1') {
+                this.dom.tooltip.style.left = `${e.clientX}px`;
+                this.dom.tooltip.style.top = `${e.clientY}px`;
+            }
+        });
+
+        // Delegate MouseOut (for tooltip hide)
+        document.addEventListener('mouseout', (e) => {
+            const info = getColorInfo(e.target);
+            if (info) {
+                this.dom.tooltip.style.opacity = '0';
+            }
+        });
+
+        // Delegate Click (for copy)
+        document.addEventListener('click', (e) => {
+            const info = getColorInfo(e.target);
+            if (info) {
+                this.copyToClipboard(this.state.colors[info.index]);
+
+                // Visual feedback
+                const originalTransform = info.el.style.transform;
+                // Specific handling for SVG elements 
+                info.el.style.transition = 'transform 0.1s';
+                info.el.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    info.el.style.transform = originalTransform || '';
+                }, 100);
+            }
+        });
     }
 
     handlePaletteClick(e) {

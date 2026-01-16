@@ -696,3 +696,36 @@ select option {
     color: var(--c-5);
     /* Success Color */
 }
+
+/* =========================================
+   9. PREVIEW INTERACTIONS
+   ========================================= */
+.color-interactive {
+    cursor: pointer;
+    /* Removed transition for instant effect */
+}
+
+.color-interactive:hover {
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.preview-tooltip {
+    position: fixed;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: monospace;
+    font-weight: 700;
+    pointer-events: none;
+    opacity: 0;
+    /* Removed transition for instant appearance */
+    z-index: 9999;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+    transform: translate(-50%, -150%);
+    /* Center above cursor */
+    text-transform: uppercase;
+}
