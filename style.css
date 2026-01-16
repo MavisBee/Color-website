@@ -48,7 +48,7 @@
     --bg-surface: #ffffff;
     --bg-surface-glass: rgba(255, 255, 255, 0.85);
     --bg-element: #e2e8f0;
-    --text-primary: #0f172a;
+    --text-primary: #5B4B55;
     --text-secondary: #64748b;
     --border-color: rgba(0, 0, 0, 0.08);
 }
@@ -448,33 +448,36 @@ select option {
 
 .hero-visual {
     position: relative;
-    width: 300px;
-    height: 300px;
+    width: 50%;
+    max-width: 600px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.visual-circle {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(40px);
-    opacity: 0.6;
+#svg-container {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.2));
+    animation: fadeIn 1s ease 0.5s backwards;
 }
 
-.visual-circle.c1 {
-    width: 200px;
-    height: 200px;
-    background: var(--c-2);
-    top: 0;
-    left: 0;
-    animation: float 6s infinite ease-in-out;
+#svg-container svg {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
-.visual-circle.c2 {
-    width: 150px;
-    height: 150px;
-    background: var(--c-4);
-    bottom: 0;
-    right: 0;
-    animation: float 8s infinite ease-in-out reverse;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes float {
@@ -626,7 +629,13 @@ select option {
     }
 
     .hero-visual {
-        display: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        margin-top: 1rem;
     }
 }
 
@@ -653,4 +662,37 @@ select option {
     .hero-title {
         font-size: 2rem;
     }
+}
+
+/* =========================================
+   8. TOAST NOTIFICATION
+   ========================================= */
+.toast-notification {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    z-index: 1000;
+}
+
+.toast-notification.active {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-notification .material-icons-round {
+    color: var(--c-5);
+    /* Success Color */
 }

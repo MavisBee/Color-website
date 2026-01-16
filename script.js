@@ -38,6 +38,131 @@ class ColorApp {
         this.bindEvents();
         this.generatePalette();
         this.createToastContainer();
+        this.loadSVG(); // Load the dynamic SVG
+    }
+
+    async loadSVG() {
+        try {
+            const response = await fetch('Illustration.svg');
+            if (response.ok) {
+                let text = await response.text();
+                text = this.processSVG(text);
+                const container = document.getElementById('svg-container');
+                if (container) {
+                    container.innerHTML = text;
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load SVG', e);
+        }
+    }
+
+    processSVG(text) {
+        // Map specific illustration hex colors to our dynamic variables
+        // This makes the static SVG dynamic without manually editing 800 lines of paths
+        const replacements = {
+            // --- Dark / Outlines / Shadows (text-primary) ---
+            '#5B4B55': 'var(--text-primary)',
+            '#373639': 'var(--text-primary)',
+            '#3E383F': 'var(--text-primary)',
+            '#2D2C31': 'var(--text-primary)',
+            '#323035': 'var(--text-primary)',
+            '#333534': 'var(--text-primary)',
+            '#5B4A50': 'var(--text-primary)',
+            '#544750': 'var(--text-primary)',
+            '#373330': 'var(--text-primary)',
+            '#53434E': 'var(--text-primary)',
+
+
+            // --- CAR & Strong Accents (Color 1 - Primary) ---
+            // Assuming #F7B853 / #F9C266 groups are the car/yellow obj based on visual probability in illustrations or specific unique hexes not skin.
+            // Adjusting based on user request to make car distinct.
+            '#F7B853': 'var(--c-1)',
+            '#F9C266': 'var(--c-1)',
+            '#D98A3D': 'var(--c-1)',
+            '#F7BF60': 'var(--c-1)',
+            '#F8BE5C': 'var(--c-1)',
+            '#F8BD61': 'var(--c-1)',
+            '#F7B853': 'var(--c-1)',
+            '#F9C266': 'var(--c-1)',
+            '#F9BA56': 'var(--c-1)',
+            '#F9C97F': 'var(--c-1)',
+            '#F8C87A': 'var(--c-1)',
+            '#BE8F62': 'var(--c-1)',
+
+            // --- Skin / Backgrounds (Color 2 - Secondary/Light) ---
+            '#FAECD1': 'var(--c-2)',
+            '#FEE8C0': 'var(--c-2)',
+            '#FDEFD6': 'var(--c-2)',
+            '#FDE7B5': 'var(--c-2)',
+            '#F4DF9E': 'var(--c-2)',
+            '#FADEAF': 'var(--c-2)',
+            '#FADDA6': 'var(--c-2)',
+            '#FEE9C1': 'var(--c-2)',
+            '#F7D997': 'var(--c-2)',
+            '#F4D69A': 'var(--c-2)',
+            '#F7E7C6': 'var(--c-2)',
+            '#D9863D': 'var(--c-2)',
+            '#F5B25C': 'var(--c-2)',
+            '#B5793B': 'var(--c-2)',
+            '#B6783F': 'var(--c-2)',
+
+            // --- Earth Tones / Buildings (Color 3) ---
+            '#DD8946': 'var(--c-3)',
+            '#CC8159': 'var(--c-3)',
+            '#C57E4A': 'var(--c-3)',
+            '#E58943': 'var(--c-3)',
+            '#9D592D': 'var(--c-3)',
+            '#DAB48D': 'var(--c-3)',
+            '#EFBA6C': 'var(--c-3)',
+            '#CD7E45': 'var(--c-3)',
+            '#9D6C4B': 'var(--c-3)',
+            '#EDCA8B': 'var(--c-3)',
+            '#EFC887': 'var(--c-3)',
+            '#EFBA6C': 'var(--c-3)',
+            '#726670': 'var(--c-3)',
+            '#887E72': 'var(--c-3)',
+            '#DB8C3D': 'var(--c-3)',
+            '#AF7135': 'var(--c-4)',
+
+
+            // --- SHIRTS / People Accents (Color 4) ---
+            // Distinct from skin/car.
+            '#D74D42': 'var(--c-4)',
+            '#9A3B39': 'var(--c-4)',
+            '#DC9F60': 'var(--c-4)',
+            '#EDC37B': 'var(--c-4)',
+            '#F8DCA5': 'var(--c-4)',
+            '#FBDEA9': 'var(--c-4)',
+            '#AB7338': 'var(--c-4)',
+
+
+            // --- Trees / Nature / Sky (Color 5) ---
+            '#6EAFC7': 'var(--c-5)',
+            '#5FADCA': 'var(--c-5)',
+            '#42707F': 'var(--c-5)',
+            '#84A4B1': 'var(--c-5)',
+            '#6EB0C6': 'var(--c-5)',
+            '#457684': 'var(--c-5)',
+            '#4A7480': 'var(--c-5)',
+            '#6EB0C6': 'var(--c-5)',
+
+            // Misc
+            'white': 'transparent'
+        };
+
+        let newText = text;
+        for (const [hex, variable] of Object.entries(replacements)) {
+            // Global replace ensuring case insensitivity if needed (though hex usually upper)
+            const regex = new RegExp(hex, 'gi');
+            newText = newText.replace(regex, variable);
+        }
+
+        // Ensure SVG scales
+        newText = newText.replace('width="1408"', 'width="100%"');
+        newText = newText.replace('height="785"', 'height="100%"');
+
+        return newText;
     }
 
     bindEvents() {
