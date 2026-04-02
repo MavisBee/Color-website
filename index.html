@@ -33,52 +33,7 @@
 
         <!-- 2. Palette Section -->
         <section class="palette-container" id="palette-container" aria-label="Color Palette">
-            <!-- 5 Colors rendered here -->
-            <div class="color-card" data-index="0">
-                <div class="color-swatch-area">
-                    <div class="color-overlay"><button class="action-btn" title="Lock Color"><span
-                                class="material-icons-round">lock_open</span></button><button class="action-btn"
-                            title="Refresh This Color"><span class="material-icons-round">refresh</span></button></div>
-                </div>
-                <div class="color-details"><span class="hex-text">#------</span><button class="copy-btn"
-                        title="Copy HEX"><span class="material-icons-round">content_copy</span></button></div>
-            </div>
-            <div class="color-card" data-index="1">
-                <div class="color-swatch-area">
-                    <div class="color-overlay"><button class="action-btn" title="Lock Color"><span
-                                class="material-icons-round">lock_open</span></button><button class="action-btn"
-                            title="Refresh This Color"><span class="material-icons-round">refresh</span></button></div>
-                </div>
-                <div class="color-details"><span class="hex-text">#------</span><button class="copy-btn"
-                        title="Copy HEX"><span class="material-icons-round">content_copy</span></button></div>
-            </div>
-            <div class="color-card" data-index="2">
-                <div class="color-swatch-area">
-                    <div class="color-overlay"><button class="action-btn" title="Lock Color"><span
-                                class="material-icons-round">lock_open</span></button><button class="action-btn"
-                            title="Refresh This Color"><span class="material-icons-round">refresh</span></button></div>
-                </div>
-                <div class="color-details"><span class="hex-text">#------</span><button class="copy-btn"
-                        title="Copy HEX"><span class="material-icons-round">content_copy</span></button></div>
-            </div>
-            <div class="color-card" data-index="3">
-                <div class="color-swatch-area">
-                    <div class="color-overlay"><button class="action-btn" title="Lock Color"><span
-                                class="material-icons-round">lock_open</span></button><button class="action-btn"
-                            title="Refresh This Color"><span class="material-icons-round">refresh</span></button></div>
-                </div>
-                <div class="color-details"><span class="hex-text">#------</span><button class="copy-btn"
-                        title="Copy HEX"><span class="material-icons-round">content_copy</span></button></div>
-            </div>
-            <div class="color-card" data-index="4">
-                <div class="color-swatch-area">
-                    <div class="color-overlay"><button class="action-btn" title="Lock Color"><span
-                                class="material-icons-round">lock_open</span></button><button class="action-btn"
-                            title="Refresh This Color"><span class="material-icons-round">refresh</span></button></div>
-                </div>
-                <div class="color-details"><span class="hex-text">#------</span><button class="copy-btn"
-                        title="Copy HEX"><span class="material-icons-round">content_copy</span></button></div>
-            </div>
+            <!-- Colors rendered dynamically here -->
         </section>
 
         <!-- 3. Sticky Controls Bar -->
@@ -94,6 +49,12 @@
                         <option value="split-complementary">Split Comp.</option>
                         <option value="square">Square</option>
                     </select>
+                </div>
+
+                <div class="input-group">
+                    <span class="material-icons-round select-icon">palette</span>
+                    <input type="number" id="color-count" min="3" max="8" value="5" title="Number of Colors">
+                    <span class="input-label">Colors</span>
                 </div>
 
                 <button id="generate-btn" class="btn-primary">
@@ -147,12 +108,8 @@
 
                 <!-- Dashboard Widget Preview -->
                 <div class="preview-widget glass-panel">
-                    <div class="chart-area">
-                        <div class="bar bar-1 color-interactive" data-color-index="0"></div>
-                        <div class="bar bar-2 color-interactive" data-color-index="1"></div>
-                        <div class="bar bar-3 color-interactive" data-color-index="2"></div>
-                        <div class="bar bar-4 color-interactive" data-color-index="3"></div>
-                        <div class="bar bar-5 color-interactive" data-color-index="4"></div>
+                    <div class="chart-area" id="chart-area">
+                        <!-- Bars generated dynamically -->
                     </div>
                     <div class="widget-info">
                         <h4>Monthly Growth</h4>

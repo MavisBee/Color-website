@@ -137,11 +137,9 @@ button {
    ========================================= */
 .palette-container {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    /* 5 columns by default */
+    grid-template-columns: repeat(var(--total-colors, 5), 1fr);
     gap: var(--spacing-sm);
     min-height: 300px;
-    /* Initial height */
 }
 
 .color-card {
@@ -162,37 +160,17 @@ button {
 
 .color-swatch-area {
     flex: 1;
-    /* Takes available space */
     min-height: 180px;
     background-color: var(--bg-element);
     position: relative;
     transition: background-color 0.4s ease;
 }
 
-/* Dynamic Colors binding */
-.color-card[data-index="0"] .color-swatch-area {
-    background-color: var(--c-1);
-    color: var(--text-c-1);
-}
-
-.color-card[data-index="1"] .color-swatch-area {
-    background-color: var(--c-2);
-    color: var(--text-c-2);
-}
-
-.color-card[data-index="2"] .color-swatch-area {
-    background-color: var(--c-3);
-    color: var(--text-c-3);
-}
-
-.color-card[data-index="3"] .color-swatch-area {
-    background-color: var(--c-4);
-    color: var(--text-c-4);
-}
-
-.color-card[data-index="4"] .color-swatch-area {
-    background-color: var(--c-5);
-    color: var(--text-c-5);
+/* Dynamic Colors binding - now handled via style attribute or nth-child if preferred, 
+   but since we generate them we can use CSS variables directly on elements */
+.color-card .color-swatch-area {
+    background-color: var(--card-color);
+    color: var(--card-text);
 }
 
 .color-overlay {
@@ -247,11 +225,24 @@ button {
     background: var(--bg-surface);
 }
 
-.hex-text {
+.hex-input {
     font-family: monospace;
     font-size: 1rem;
     font-weight: 700;
     text-transform: uppercase;
+    background: transparent;
+    border: 1px solid transparent;
+    color: inherit;
+    width: 100px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: border-color 0.2s;
+}
+
+.hex-input:focus {
+    outline: none;
+    border-color: var(--primary-accent);
+    background: var(--bg-element);
 }
 
 .copy-btn {
@@ -307,7 +298,8 @@ button {
     color: var(--text-secondary);
 }
 
-select {
+select,
+#color-count {
     background: transparent;
     border: none;
     color: var(--text-primary);
@@ -317,6 +309,20 @@ select {
     padding: 0.5rem 0;
     cursor: pointer;
     outline: none;
+}
+
+#color-count {
+    width: 40px;
+    flex: none;
+    text-align: center;
+    font-weight: 600;
+}
+
+.input-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
 }
 
 /* Explicitly setting option colors for visibility */
@@ -565,31 +571,7 @@ select option {
     flex: 1;
     border-radius: 5px 5px 0 0;
     background: var(--bg-element);
-}
-
-.bar-1 {
-    height: 40%;
-    background: var(--c-1);
-}
-
-.bar-2 {
-    height: 75%;
-    background: var(--c-2);
-}
-
-.bar-3 {
-    height: 55%;
-    background: var(--c-3);
-}
-
-.bar-4 {
-    height: 90%;
-    background: var(--c-4);
-}
-
-.bar-5 {
-    height: 65%;
-    background: var(--c-5);
+    transition: height 0.3s ease, background-color 0.3s ease;
 }
 
 .stat-badge {
@@ -608,9 +590,8 @@ select option {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .color-card[data-index="4"] {
+    .color-card:nth-last-child(1):nth-child(odd) {
         grid-column: span 2;
-        /* Centered last item */
     }
 
     .preview-hero {

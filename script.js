@@ -1,21 +1,23 @@
-/**
- * Professional Color Generator Logic
- * Refactored for performance and modularity.
- */
-
 class ColorApp {
     constructor() {
         this.config = {
-            totalColors: 5,
+            minColors: 3,
+            maxColors: 8,
             defaultMode: 'analogous'
         };
 
+        const savedCount = parseInt(localStorage.getItem('colorCount'), 10) || 5;
         this.state = {
-            colors: new Array(this.config.totalColors).fill('#000000'),
-            locked: new Array(this.config.totalColors).fill(false),
+            totalColors: Math.max(this.config.minColors, Math.min(this.config.maxColors, savedCount)),
+            colors: [],
+            locked: [],
             mode: 'analogous',
             theme: localStorage.getItem('theme') || 'theme-dark'
         };
+
+        // Initialize state arrays based on totalColors
+        this.state.colors = new Array(this.state.totalColors).fill('#000000');
+        this.state.locked = new Array(this.state.totalColors).fill(false);
 
         this.dom = {
             root: document.documentElement,
@@ -23,8 +25,10 @@ class ColorApp {
             paletteContainer: document.getElementById('palette-container'),
             generateBtn: document.getElementById('generate-btn'),
             harmonySelect: document.getElementById('harmony-select'),
+            colorCountInput: document.getElementById('color-count'),
             themeToggle: document.getElementById('theme-toggle'),
-            colorCards: document.querySelectorAll('.color-card'), // Initial load
+            chartArea: document.getElementById('chart-area'),
+            colorCards: [], // Will be populated dynamically
         };
 
         this.init();
@@ -35,10 +39,63 @@ class ColorApp {
         this.dom.body.className = this.state.theme;
         this.updateThemeIcon();
 
+        // Set initial color count in input
+        if (this.dom.colorCountInput) {
+            this.dom.colorCountInput.value = this.state.totalColors;
+        }
+
+        this.renderCards();
         this.bindEvents();
         this.generatePalette();
         this.createToastContainer();
         this.loadSVG(); // Load the dynamic SVG
+    }
+
+    renderCards() {
+        this.dom.paletteContainer.innerHTML = '';
+        this.dom.colorCards = [];
+        this.dom.root.style.setProperty('--total-colors', this.state.totalColors);
+
+        for (let i = 0; i < this.state.totalColors; i++) {
+            const card = document.createElement('div');
+            card.className = 'color-card';
+            card.dataset.index = i;
+            card.innerHTML = `
+                <div class="color-swatch-area">
+                    <div class="color-overlay">
+                        <button class="action-btn" title="Lock Color">
+                            <span class="material-icons-round">lock_open</span>
+                        </button>
+                        <button class="action-btn" title="Refresh This Color">
+                            <span class="material-icons-round">refresh</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="color-details">
+                    <input type="text" class="hex-input" spellcheck="false" maxlength="7" title="Edit HEX">
+                    <button class="copy-btn" title="Copy HEX">
+                        <span class="material-icons-round">content_copy</span>
+                    </button>
+                </div>
+            `;
+            this.dom.paletteContainer.appendChild(card);
+            this.dom.colorCards.push(card);
+        }
+
+        // Render Chart Bars
+        if (this.dom.chartArea) {
+            this.dom.chartArea.innerHTML = '';
+            const heights = [40, 75, 55, 90, 65, 80, 45, 70];
+            for (let i = 0; i < this.state.totalColors; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'bar color-interactive';
+                bar.dataset.index = i;
+                bar.dataset.colorIndex = i;
+                bar.style.height = `${heights[i] || 50}%`;
+                bar.style.backgroundColor = `var(--c-${i + 1})`;
+                this.dom.chartArea.appendChild(bar);
+            }
+        }
     }
 
     async loadSVG() {
@@ -77,7 +134,6 @@ class ColorApp {
             '#373330': 'var(--text-primary)',
             '#53434E': 'var(--text-primary)',
 
-
             // --- CAR & Strong Accents (Color 1 - Primary) ---
             '#F7B853': 'var(--c-1)',
             '#F9C266': 'var(--c-1)',
@@ -85,8 +141,6 @@ class ColorApp {
             '#F7BF60': 'var(--c-1)',
             '#F8BE5C': 'var(--c-1)',
             '#F8BD61': 'var(--c-1)',
-            // '#F7B853': 'var(--c-1)', // Duplicate
-            // '#F9C266': 'var(--c-1)', // Duplicate
             '#F9BA56': 'var(--c-1)',
             '#F9C97F': 'var(--c-1)',
             '#F8C87A': 'var(--c-1)',
@@ -121,12 +175,10 @@ class ColorApp {
             '#9D6C4B': 'var(--c-3)',
             '#EDCA8B': 'var(--c-3)',
             '#EFC887': 'var(--c-3)',
-            // '#EFBA6C': 'var(--c-3)', // Duplicate
             '#726670': 'var(--c-3)',
             '#887E72': 'var(--c-3)',
             '#DB8C3D': 'var(--c-3)',
             '#AF7135': 'var(--c-4)',
-
 
             // --- SHIRTS / People Accents (Color 4) ---
             '#D74D42': 'var(--c-4)',
@@ -137,7 +189,6 @@ class ColorApp {
             '#FBDEA9': 'var(--c-4)',
             '#AB7338': 'var(--c-4)',
 
-
             // --- Trees / Nature / Sky (Color 5) ---
             '#6EAFC7': 'var(--c-5)',
             '#5FADCA': 'var(--c-5)',
@@ -146,7 +197,6 @@ class ColorApp {
             '#6EB0C6': 'var(--c-5)',
             '#457684': 'var(--c-5)',
             '#4A7480': 'var(--c-5)',
-            // '#6EB0C6': 'var(--c-5)', // Duplicate
 
             // Misc
             'white': 'transparent'
@@ -209,6 +259,18 @@ class ColorApp {
             this.generatePalette();
         });
 
+        // Color Count Adjustment
+        this.dom.colorCountInput.addEventListener('change', (e) => {
+            let val = parseInt(e.target.value, 10);
+            if (isNaN(val)) val = 5;
+            val = Math.max(this.config.minColors, Math.min(this.config.maxColors, val));
+            e.target.value = val;
+
+            if (val !== this.state.totalColors) {
+                this.updateColorCount(val);
+            }
+        });
+
         // Theme Toggle
         this.dom.themeToggle.addEventListener('click', () => this.toggleTheme());
 
@@ -223,9 +285,70 @@ class ColorApp {
 
         // Delegate Palette Interactions
         this.dom.paletteContainer.addEventListener('click', (e) => this.handlePaletteClick(e));
+        
+        // Handle Hex Input
+        this.dom.paletteContainer.addEventListener('input', (e) => {
+            if (e.target.classList.contains('hex-input')) {
+                this.handleHexInput(e);
+            }
+        });
+
+        this.dom.paletteContainer.addEventListener('blur', (e) => {
+            if (e.target.classList.contains('hex-input')) {
+                this.validateHexInput(e.target);
+            }
+        }, true);
 
         // Interactive Preview Elements
         this.bindInteractivePreview();
+    }
+
+    updateColorCount(newCount) {
+        // Prepare new arrays
+        const oldColors = [...this.state.colors];
+        const oldLocked = [...this.state.locked];
+
+        this.state.totalColors = newCount;
+        this.state.colors = new Array(newCount);
+        this.state.locked = new Array(newCount).fill(false);
+
+        // Preserve existing colors/locks where possible
+        for (let i = 0; i < newCount; i++) {
+            if (i < oldColors.length) {
+                this.state.colors[i] = oldColors[i];
+                this.state.locked[i] = oldLocked[i];
+            } else {
+                this.state.colors[i] = '#000000'; // Default, will be updated by generate
+            }
+        }
+
+        localStorage.setItem('colorCount', newCount);
+        this.renderCards();
+        this.generatePalette();
+    }
+
+    handleHexInput(e) {
+        const input = e.target;
+        const card = input.closest('.color-card');
+        const index = parseInt(card.dataset.index, 10);
+        let val = input.value;
+
+        if (!val.startsWith('#')) {
+            val = '#' + val;
+            input.value = val;
+        }
+
+        if (/^#[0-9A-F]{6}$/i.test(val)) {
+            this.state.colors[index] = val.toUpperCase();
+            this.updateSingleCardUI(index);
+        }
+    }
+
+    validateHexInput(input) {
+        const card = input.closest('.color-card');
+        const index = parseInt(card.dataset.index, 10);
+        const val = this.state.colors[index];
+        input.value = val; // Reset to state value (guaranteed valid hex)
     }
 
     bindInteractivePreview() {
@@ -241,7 +364,9 @@ class ColorApp {
             const el = target.closest('.color-interactive');
             if (!el) return null;
             const index = parseInt(el.dataset.colorIndex, 10);
-            return isNaN(index) ? null : { el, index };
+            // Check if index is within current range
+            if (isNaN(index) || index >= this.state.totalColors) return null;
+            return { el, index };
         };
 
         // Delegate MouseOver (for tooltip show)
@@ -251,7 +376,6 @@ class ColorApp {
                 const color = this.state.colors[info.index];
                 this.dom.tooltip.textContent = color;
                 this.dom.tooltip.style.opacity = '1';
-                // Ensure tooltip is positioned immediately
                 this.dom.tooltip.style.left = `${e.clientX}px`;
                 this.dom.tooltip.style.top = `${e.clientY}px`;
             }
@@ -281,7 +405,6 @@ class ColorApp {
 
                 // Visual feedback
                 const originalTransform = info.el.style.transform;
-                // Specific handling for SVG elements 
                 info.el.style.transition = 'transform 0.1s';
                 info.el.style.transform = 'scale(0.95)';
                 setTimeout(() => {
@@ -327,15 +450,15 @@ class ColorApp {
     generatePalette() {
         // 1. Base Color Generation (Random HSL)
         const baseH = Math.floor(Math.random() * 360);
-        const baseS = Math.floor(Math.random() * 60) + 40; // Avoid dull colors
-        const baseL = Math.floor(Math.random() * 40) + 35; // Avoid too dark/light
+        const baseS = Math.floor(Math.random() * 60) + 40; 
+        const baseL = Math.floor(Math.random() * 40) + 35; 
 
         // 2. Harmony Calculation
         const harmonyColors = this.calculateHarmonies(baseH, baseS, baseL);
 
         // 3. Update State (respecting locks)
         harmonyColors.forEach((hsl, i) => {
-            if (!this.state.locked[i]) {
+            if (i < this.state.totalColors && !this.state.locked[i]) {
                 const hex = this.hslToHex(hsl.h, hsl.s, hsl.l);
                 this.state.colors[i] = hex;
             }
@@ -346,108 +469,111 @@ class ColorApp {
     }
 
     regenerateSingleColor(index) {
-        // Generate a random compatible variation
         const h = Math.floor(Math.random() * 360);
         const s = Math.floor(Math.random() * 40) + 50;
         const l = Math.floor(Math.random() * 40) + 40;
 
         this.state.colors[index] = this.hslToHex(h, s, l);
-        this.updateUI();
+        this.updateSingleCardUI(index);
     }
 
     calculateHarmonies(h, s, l) {
         let colors = [];
         const mode = this.state.mode;
+        const count = this.state.totalColors;
 
         const clip = (val, min, max) => Math.max(min, Math.min(val, max));
 
+        const generateSteps = (baseValue, stepSize, num) => {
+            const steps = [];
+            const half = Math.floor(num / 2);
+            for (let i = -half; i < -half + num; i++) {
+                steps.push(baseValue + i * stepSize);
+            }
+            return steps;
+        };
+
         switch (mode) {
             case 'monochromatic':
-                colors = [
-                    { h, s, l: clip(l - 30, 20, 90) },
-                    { h, s, l: clip(l - 15, 20, 90) },
-                    { h, s, l }, // Base
-                    { h, s, l: clip(l + 15, 20, 90) },
-                    { h, s, l: clip(l + 30, 20, 95) }
-                ];
+                const lSteps = generateSteps(l, 12, count);
+                colors = lSteps.map(L => ({ h, s, l: clip(L, 15, 95) }));
                 break;
             case 'analogous':
-                colors = [
-                    { h: (h - 30 + 360) % 360, s, l },
-                    { h: (h - 15 + 360) % 360, s, l },
-                    { h, s, l },
-                    { h: (h + 15) % 360, s, l },
-                    { h: (h + 30) % 360, s, l }
-                ];
+                const hSteps = generateSteps(h, 20, count);
+                colors = hSteps.map(H => ({ h: (H + 360) % 360, s, l }));
                 break;
-            case 'complementary': // 2 dominant colors + variations
-                colors = [
-                    { h, s, l },
-                    { h, s, l: clip(l + 25, 20, 90) },
-                    { h, s: Math.max(s - 20, 0), l: clip(l + 45, 80, 98) }, // Neutral
-                    { h: (h + 180) % 360, s, l },
-                    { h: (h + 180) % 360, s, l: clip(l - 20, 10, 80) }
-                ];
+            case 'complementary':
+                for (let i = 0; i < count; i++) {
+                    if (i < Math.ceil(count / 2)) {
+                        colors.push({ h, s, l: clip(l + (i * 15), 20, 90) });
+                    } else {
+                        const offset = i - Math.ceil(count / 2);
+                        colors.push({ h: (h + 180) % 360, s, l: clip(l - (offset * 15), 20, 90) });
+                    }
+                }
                 break;
             case 'triadic':
-                colors = [
-                    { h, s, l },
-                    { h: (h + 120) % 360, s, l },
-                    { h: (h + 240) % 360, s, l },
-                    { h: (h + 120) % 360, s, l: clip(l + 20, 20, 90) },
-                    { h: (h + 240) % 360, s, l: clip(l - 20, 20, 90) }
-                ];
+                const triH = [h, (h + 120) % 360, (h + 240) % 360];
+                for (let i = 0; i < count; i++) {
+                    colors.push({ h: triH[i % 3], s, l: clip(l + (Math.floor(i / 3) * 15), 20, 90) });
+                }
                 break;
             case 'split-complementary':
-                colors = [
-                    { h, s, l },
-                    { h: (h + 150) % 360, s, l },
-                    { h: (h + 210) % 360, s, l },
-                    { h: (h + 150) % 360, s: Math.max(s - 10, 0), l: clip(l + 20, 70, 95) },
-                    { h: (h + 210) % 360, s: Math.max(s - 10, 0), l: clip(l - 20, 10, 50) }
-                ];
+                const splitH = [h, (h + 150) % 360, (h + 210) % 360];
+                for (let i = 0; i < count; i++) {
+                    colors.push({ h: splitH[i % 3], s, l: clip(l + (Math.floor(i / 3) * 15), 20, 90) });
+                }
                 break;
             case 'square':
-                colors = [
-                    { h, s, l },
-                    { h: (h + 90) % 360, s, l },
-                    { h: (h + 180) % 360, s, l },
-                    { h: (h + 270) % 360, s, l },
-                    { h: (h + 90) % 360, s, l: clip(l + 30, 80, 95) }
-                ];
+                const squareH = [h, (h + 90) % 360, (h + 180) % 360, (h + 270) % 360];
+                for (let i = 0; i < count; i++) {
+                    colors.push({ h: squareH[i % 4], s, l: clip(l + (Math.floor(i / 4) * 15), 20, 90) });
+                }
                 break;
             default:
-                for (let i = 0; i < 5; i++) colors.push({ h: Math.random() * 360, s: 60, l: 50 });
+                for (let i = 0; i < count; i++) colors.push({ h: Math.random() * 360, s: 60, l: 50 });
         }
         return colors;
     }
 
     updateUI() {
         this.dom.colorCards.forEach((card, index) => {
-            const color = this.state.colors[index];
-
-            // 1. CSS Variables for global usage (previews)
-            this.dom.root.style.setProperty(`--c-${index + 1}`, color);
-
-            // 2. Contrast Color for text visibility
-            const contrast = this.getContrastColor(color);
-            this.dom.root.style.setProperty(`--text-c-${index + 1}`, contrast);
-
-            // 3. DOM Text
-            const hexEl = card.querySelector('.hex-text');
-            if (hexEl) hexEl.textContent = color;
-
-            // 4. Lock Visuals
-            const lockIcon = card.querySelector('[title="Lock Color"] span');
-            if (lockIcon) lockIcon.textContent = this.state.locked[index] ? 'lock' : 'lock_open';
-
-            card.classList.toggle('locked', this.state.locked[index]);
+            this.updateSingleCardUI(index);
         });
+    }
+
+    updateSingleCardUI(index) {
+        const card = this.dom.colorCards[index];
+        if (!card) return;
+
+        const color = this.state.colors[index];
+        const contrast = this.getContrastColor(color);
+
+        // 1. CSS Variables for the card itself
+        card.style.setProperty('--card-color', color);
+        card.style.setProperty('--card-text', contrast);
+
+        // 2. Global CSS Variables (previews)
+        this.dom.root.style.setProperty(`--c-${index + 1}`, color);
+        this.dom.root.style.setProperty(`--text-c-${index + 1}`, contrast);
+
+        // 3. Hex Input
+        const hexInput = card.querySelector('.hex-input');
+        if (hexInput && document.activeElement !== hexInput) {
+            hexInput.value = color;
+        }
+
+        // 4. Lock Visuals
+        const lockIcon = card.querySelector('[title="Lock Color"] span');
+        if (lockIcon) {
+            lockIcon.textContent = this.state.locked[index] ? 'lock' : 'lock_open';
+        }
+        card.classList.toggle('locked', this.state.locked[index]);
     }
 
     toggleLock(index) {
         this.state.locked[index] = !this.state.locked[index];
-        this.updateUI();
+        this.updateSingleCardUI(index);
     }
 
     /* --- Utils --- */
@@ -479,7 +605,7 @@ class ColorApp {
 
     createToastContainer() {
         this.dom.toast = document.createElement('div');
-        this.dom.toast.className = 'toast-notification'; // Ensure CSS exists
+        this.dom.toast.className = 'toast-notification';
         this.dom.toast.innerHTML = `<span class="material-icons-round">check</span> <span class="msg"></span>`;
         document.body.appendChild(this.dom.toast);
     }
@@ -497,3 +623,4 @@ class ColorApp {
 
 // Start
 document.addEventListener('DOMContentLoaded', () => new ColorApp());
+
